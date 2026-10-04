@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Zusje · Keuken</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=Great+Vibes&family=Mulish:wght@400;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .k-wrap { padding: 16px; max-width: 1400px; margin: 0 auto; }
+    .k-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; border-bottom: 1px solid var(--line); padding-bottom: 12px; }
+    .k-head h1 { margin: 0; font-size: 40px; }
+    .k-head .stats { display: flex; gap: 8px; flex-wrap: wrap; }
+    .calls { display: flex; gap: 8px; flex-wrap: wrap; margin: 14px 0 0; }
+    .call { background: var(--rose); color: #1d1c1a; border: none; border-radius: 999px; padding: 8px 14px; font-weight: 800; animation: pulse 1.4s infinite; }
+    .cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 16px; }
+    @media (max-width: 860px) { .cols { grid-template-columns: 1fr; } }
+    .col h2 { font-family: var(--display); font-size: 22px; color: var(--gold-soft); margin: 0 0 8px; display: flex; justify-content: space-between; }
+    .k-ticket { background: #f3ecda; color: #2b2a27; border-radius: 6px; padding: 12px 14px; margin-bottom: 12px; box-shadow: 0 6px 18px rgba(0,0,0,.35); font-size: 14px; }
+    .k-ticket header { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px dashed #b3a990; padding-bottom: 6px; margin-bottom: 6px; }
+    .k-ticket .tnr { font-family: var(--script); font-size: 30px; line-height: 1; color: #7d5f2b; }
+    .k-ticket .meta { font-size: 12px; color: #6b6352; text-align: right; }
+    .k-ticket ul { list-style: none; margin: 0; padding: 0; }
+    .k-ticket li { padding: 2px 0; display: flex; gap: 8px; }
+    .k-ticket li b { min-width: 26px; }
+    .k-ticket li.drank { color: #6b6352; }
+    .k-ticket .opm { background: #fde6dc; border-left: 3px solid var(--rose); padding: 6px 8px; margin-top: 8px; font-size: 13px; }
+    .k-ticket button { width: 100%; margin-top: 10px; border: none; border-radius: 999px; padding: 9px; font-weight: 800; background: #2b2a27; color: var(--gold-soft); }
+    .k-ticket.late { box-shadow: 0 0 0 3px var(--rose), 0 6px 18px rgba(0,0,0,.35); }
+    .k-empty { color: var(--muted); font-size: 13px; text-align: center; border: 1px dashed var(--line); border-radius: 8px; padding: 18px; }
+  </style>
+</head>
+<body>
+  <div class="k-wrap">
+    <div class="k-head">
+      <h1 class="script">Zusje · Keuken</h1>
+      <div class="stats">
+        <a class="icon-btn" href="qr.html" style="text-decoration:none">QR-codes tafels</a>
+        <a class="icon-btn" href="index.html?tafel=109" target="_blank" style="text-decoration:none">Open gast-app ↗</a>
+        <button class="icon-btn" id="reset">Demo leegmaken</button>
+      </div>
+    </div>
+    <div class="calls" id="calls"></div>
+    <div class="cols" id="cols"></div>
+  </div>
+  <script src="js/menu.js"></script>
+  <script src="js/store.js"></script>
+  <script>
+    const S = ZusjeStore;
+    const esc = (s) => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    const KOL = [
+      { s: "nieuw", t: "Nieuw", next: "bereiding", knop: "Start bereiding" },
+      { s: "bereiding", t: "In bereiding", next: "klaar", knop: "Klaar voor uitserveren" },
+      { s: "klaar", t: "Uitserveren", next: "geserveerd", knop: "Geserveerd ✓" },
+    ];
+    const modeKort = { bourgondisch: "Bourgondisch", drie: "Arr. 3", vier: "Arr. 4", drinks: "Borrel" };
+    const mins = (t) => Math.floor((Date.now() - t) / 60000);
+
+    function render() {
+      const orders = S.orders();
+      document.getElementById("calls").innerHTML = S.calls().filter(c => !c.done).map(c =>
+        `<button class="call" data-call="${c.id}">Tafel ${esc(c.tafel)} · ${c.type === "rekening" ? "🧾 rekening" : "🛎️ collega"} — afvinken</button>`).join("");
+      document.getElementById("cols").innerHTML = KOL.map(k => {
+        const lijst = orders.filter(o => o.status === k.s).sort((a, b) => a.tijd - b.tijd);
+        return `<div class="col"><h2>${k.t} <span class="badge ${k.s}">${lijst.length}</span></h2>
+          ${lijst.map(o => `
+            <div class="k-ticket ${mins(o.tijd) >= 15 ? "late" : ""}">
+              <header><span class="tnr">Tafel ${esc(o.tafel)}</span>
+                <span class="meta">${modeKort[o.mode] || ""} · ${o.personen} p.${o.ronde ? " · ronde " + o.ronde : ""}<br>${mins(o.tijd)} min geleden</span></header>
+              <ul>${o.items.map(i => `<li class="${i.type}"><b>${i.qty}×</b> ${i.nr ? i.nr + ". " : ""}${esc(i.naam)}</li>`).join("")}</ul>
+              ${o.opmerking ? `<div class="opm">${esc(o.opmerking)}</div>` : ""}
+              <button data-id="${o.id}" data-next="${k.next}">${k.knop}</button>
+            </div>`).join("") || `<div class="k-empty">Geen bonnen</div>`}
+        </div>`;
+      }).join("");
+    }
+
+    document.body.addEventListener("click", (e) => {
+      const b = e.target.closest("button");
+      if (!b) return;
+      if (b.dataset.id) S.setStatus(b.dataset.id, b.dataset.next);
+      if (b.dataset.call) S.doneCall(b.dataset.call);
+      if (b.id === "reset" && confirm("Alle demo-bestellingen wissen?")) S.resetAll();
+      render();
+    });
+    S.onChange(render);
+    S.pingKitchen();
+    setInterval(() => { S.pingKitchen(); render(); }, 3000);
+    render();
+  </script>
+</body>
+</html>

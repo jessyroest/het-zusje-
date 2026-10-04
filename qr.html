@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Zusje · Tafel-QR</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=Great+Vibes&family=Mulish:wght@400;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; padding: 16px; max-width: 1100px; margin: 0 auto; }
+    .card { text-align: center; background: var(--panel); }
+    .card .qr { background: #f3ecda; padding: 12px; border-radius: 6px; display: inline-block; margin: 8px 0; }
+    .card .qr img, .card .qr canvas { display: block; }
+    .card h3 { font-family: var(--script); font-weight: 400; font-size: 34px; margin: 0; color: var(--gold-soft); }
+    .card p { margin: 0; font-size: 13px; color: var(--muted); }
+    header { text-align: center; padding: 24px 16px 0; }
+    @media print { body { background: #fff; } .card { break-inside: avoid; } header button { display: none; } }
+  </style>
+</head>
+<body>
+  <header>
+    <h1 class="script" style="font-size:44px;margin:0">Tafelkaartjes</h1>
+    <p style="color:var(--muted)">Scan, kies en bestel — direct naar de keuken.</p>
+    <button class="icon-btn" onclick="print()">Afdrukken</button>
+  </header>
+  <div class="grid" id="grid"></div>
+  <script src="js/vendor/qrcode.min.js"></script>
+  <script>
+    const base = location.href.replace(/qr\.html.*$/, "index.html");
+    const grid = document.getElementById("grid");
+    for (let t = 101; t <= 112; t++) {
+      const card = document.createElement("div");
+      card.className = "card frame";
+      card.innerHTML = `<h3>Zusje</h3><div class="qr"></div><p><b style="color:var(--cream)">Tafel ${t}</b></p><p>Scan om te bestellen</p>`;
+      grid.appendChild(card);
+      new QRCode(card.querySelector(".qr"), { text: base + "?tafel=" + t, width: 150, height: 150, colorDark: "#2b2a27", colorLight: "#f3ecda" });
+    }
+  </script>
+</body>
+</html>
