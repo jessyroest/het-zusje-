@@ -141,7 +141,7 @@
         <button class="btn" data-act="start" ${state.mode ? "" : "disabled"} style="margin-top:20px">Bekijk de kaart</button>
 
         <div class="legend"><span><span class="leaf"></span> Vegetarisch</span><span><span class="monogram sm">Z</span> Zusje klassiekertje</span></div>
-        <p class="demo-flag">Concept-demo · digitaal bestellen via QR</p>
+        <p class="demo-flag">Concept-demo van digitaal bestellen via QR · geen officiële bestelpagina van Zusje</p>
       </section>`;
 
     $app.onclick = (e) => {
